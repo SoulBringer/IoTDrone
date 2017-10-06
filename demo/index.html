@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- <link rel="stylesheet" type="text/css" href="metro-bootstrap/dist/css/metro-bootstrap.min.css" /> -->
+    <link rel="stylesheet" type="text/css" href="css/flightindicators.min.css" />
+    <title>IoT Drone telemetry</title>
+</head>
+
+<body>
+    <div class="container">
+        <span id="attitude"></span>
+        <span id="altimeter"></span>
+        <span id="heading"></span>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="js/jquery.flightindicators.min.js"></script>
+    <script>
+        $(function () {
+            var attitude = $.flightIndicator('#attitude', 'attitude', { roll: 0, pitch: 0, size: 500, showBox: true });
+            var altimeter = $.flightIndicator('#altimeter', 'altimeter', { "size": 500 });
+            var heading = $.flightIndicator('#heading', 'heading', { heading: 0, showBox: true, "size": 500 });
+            var ENDPOINT = "https://1tq2m1a2ef.execute-api.eu-west-1.amazonaws.com/prod/getDroneTelemetry";
+            var TIME_PERIOD = 1000; //msec
+            setInterval(function () {
+                $.ajax({
+                    "dataType": "json",
+                    "method": "GET",
+                    "url": ENDPOINT
+                })
+                    .then(function (response) {
+                        attitude.setRoll(-1 * response.roll / Math.PI * 180);
+                        attitude.setPitch(response.pitch / Math.PI * 180);
+
+                        // Altimeter update
+                        altimeter.setAltitude(response.altitude * 1000 /** 3.2808399*/);
+                        altimeter.setPressure(0);
+
+                        // Heading update
+                        heading.setHeading(response.heading / Math.PI * 180);
+                    });
+            }, TIME_PERIOD);
+        });
+    </script>
+</body>
+
+</html>
